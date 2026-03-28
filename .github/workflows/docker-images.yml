@@ -49,7 +49,7 @@ jobs:
           - runner: ubuntu-24.04-arm
             value: linux/arm64
             suffix: arm64
-        image: ${{ fromJson(needs.matrix.outputs.rows).include }}
+        image: ${{ fromJson(needs.matrix.outputs.rows) }}
     runs-on: ${{ matrix.platform.runner }}
     env:
       REGISTRY_IMAGE: ghcr.io/${{ github.repository_owner }}/${{ matrix.image.image_name }}
@@ -59,14 +59,6 @@ jobs:
       DOCKERFILE: ${{ matrix.image.dockerfile }}
 
     steps:
-      - name: Parse version parts
-        id: version_parts
-        run: |
-          major="$(echo "$VERSION" | cut -d. -f1)"
-          minor="$(echo "$VERSION" | cut -d. -f2)"
-          echo "major=$major" >> "$GITHUB_OUTPUT"
-          echo "minor=$minor" >> "$GITHUB_OUTPUT"
-
       - name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
@@ -104,18 +96,19 @@ jobs:
           push: ${{ github.event_name == 'push' }}
 
   merge:
-    name: Merge manifest (${{ matrix.config_name }} / ${{ matrix.image_name }} / ${{ matrix.version }})
+    name: Merge manifest (${{ matrix.image.config_name }} / ${{ matrix.image.image_name }} / ${{ matrix.image.version }})
     if: github.event_name == 'push'
     needs:
       - matrix
-      - build
+      # - build
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
-      matrix: ${{ fromJson(needs.matrix.outputs.rows) }}
+      matrix:
+        image: ${{ fromJson(needs.matrix.outputs.rows) }}
     env:
-      REGISTRY_IMAGE: ghcr.io/${{ github.repository_owner }}/${{ matrix.image_name }}
-      VERSION: ${{ matrix.version }}
+      REGISTRY_IMAGE: ghcr.io/${{ github.repository_owner }}/${{ matrix.image.image_name }}
+      VERSION: ${{ matrix.image.version }}
     steps:
       - name: Parse version parts
         id: version_parts

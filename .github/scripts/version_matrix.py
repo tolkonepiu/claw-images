@@ -32,7 +32,7 @@ def _matrix_rows(path: Path, data: dict[str, Any]) -> list[dict[str, str]]:
     return rows
 
 
-def build_matrix() -> dict[str, list[dict[str, str]]]:
+def build_matrix() -> list[dict[str, str]]:
     files = sorted(IMAGES_DIR.glob("*.json"), key=lambda item: item.name)
     if not files:
         raise ValueError("No images JSON files found in images/*.json")
@@ -43,7 +43,7 @@ def build_matrix() -> dict[str, list[dict[str, str]]]:
         data = _load_json(path)
         rows.extend(_matrix_rows(path, data))
 
-    return {"include": rows}
+    return rows
 
 
 def main() -> int:
