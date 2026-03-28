@@ -15,6 +15,9 @@ permissions:
   contents: read
   packages: write
 
+env:
+  REGISTRY: ghcr.io
+
 jobs:
   matrix:
     name: Prepare build matrix
@@ -37,18 +40,27 @@ jobs:
           echo "rows=$rows_json" >> "$GITHUB_OUTPUT"
 
   build:
-    name: Build ${{ matrix.config_name }} / ${{ matrix.image_name }} / ${{ matrix.version }}
+    name: Build ${{ matrix.image.config_name }} / ${{ matrix.image.image_name }} / ${{ matrix.image.version }} / ${{ matrix.platform }}
     needs: matrix
-    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
-      matrix: ${{ fromJson(needs.matrix.outputs.rows) }}
+      matrix:
+        include:
+          - runner: ubuntu-latest
+            platform: linux/amd64
+            platform_suffix: amd64
+          - runner: ubuntu-24.04-arm
+            platform: linux/arm64
+            platform_suffix: arm64
+        image: ${{ fromJson(needs.matrix.outputs.rows) }}
+    runs-on: ${{ matrix.runner }}
     env:
-      IMAGE_NAME: ${{ matrix.image_name }}
-      VERSION: ${{ matrix.version }}
-      SOURCE_REPO: ${{ matrix.source_repo }}
-      SOURCE_TAG: ${{ matrix.source_tag }}
-      DOCKERFILE: ${{ matrix.dockerfile }}
+      IMAGE_NAME: ${{ matrix.image.image_name }}
+      VERSION: ${{ matrix.image.version }}
+      SOURCE_REPO: ${{ matrix.image.source_repo }}
+      SOURCE_TAG: ${{ matrix.image.source_tag }}
+      DOCKERFILE: ${{ matrix.image.dockerfile }}
+
     steps:
       - name: Parse version parts
         id: version_parts
@@ -61,9 +73,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@ce360397dd3f832beb865e1373c09c0e9f86d70a # v4
-
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@4d04d5d9486b7bd6fa91e7baf45bbb4f8b9deedd # v4
 
@@ -74,27 +83,80 @@ jobs:
         id: meta
         uses: docker/metadata-action@030e881283bb7a6894de51c315a6bfe6a94e05cf # v6
         with:
-          images: ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}
+          images: ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}
           tags: |
-            type=raw,value=latest,enable={{is_default_branch}}
-            type=raw,value=${{ env.VERSION }}
-            type=raw,value=${{ steps.version_parts.outputs.major }}.${{ steps.version_parts.outputs.minor }}
-            type=raw,value=${{ steps.version_parts.outputs.major }}
+            type=raw,value=${{ env.VERSION }}-${{ matrix.platform_suffix }}
 
       - name: Registry login
         if: github.event_name == 'push'
-        uses: docker/login-action@b45d80f862d83dbcd57f89517bcf500b2ab88fb2 # v4.0.0
+        uses: docker/login-action@b45d80f862d83dbcd57f89517bcf500b2ab88fb2 # v4
         with:
-          registry: ghcr.io
+          registry: ${{ env.REGISTRY }}
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push image
+        id: build
         uses: docker/build-push-action@d08e5c354a6adb9ed34480a06d141179aa583294 # v7
         with:
           context: upstream
           file: upstream/${{ env.DOCKERFILE }}
-          platforms: linux/amd64,linux/arm64
+          platforms: ${{ matrix.platform }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           push: ${{ github.event_name == 'push' }}
+          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:buildcache-${{ matrix.platform_suffix }}
+          cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:buildcache-${{ matrix.platform_suffix }},mode=max
+
+  merge:
+    name: Merge manifest ${{ matrix.config_name }} / ${{ matrix.image_name }} / ${{ matrix.version }}
+    if: github.event_name == 'push'
+    needs:
+      - matrix
+      - build
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.matrix.outputs.rows) }}
+    env:
+      REGISTRY_IMAGE: ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ matrix.image_name }}
+      VERSION: ${{ matrix.version }}
+    steps:
+      - name: Parse version parts
+        id: version_parts
+        run: |
+          major="$(echo "$VERSION" | cut -d. -f1)"
+          minor="$(echo "$VERSION" | cut -d. -f2)"
+          echo "major=$major" >> "$GITHUB_OUTPUT"
+          echo "minor=$minor" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@4d04d5d9486b7bd6fa91e7baf45bbb4f8b9deedd # v4
+
+      - name: Registry login
+        uses: docker/login-action@b45d80f862d83dbcd57f89517bcf500b2ab88fb2 # v4
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create multi-arch manifest
+        run: |
+          tags=(
+            -t "${REGISTRY_IMAGE}:${VERSION}"
+            -t "${REGISTRY_IMAGE}:${{ steps.version_parts.outputs.major }}.${{ steps.version_parts.outputs.minor }}"
+            -t "${REGISTRY_IMAGE}:${{ steps.version_parts.outputs.major }}"
+          )
+
+          if [ "${GITHUB_REF_NAME}" = "${{ github.event.repository.default_branch }}" ]; then
+            tags+=(-t "${REGISTRY_IMAGE}:latest")
+          fi
+
+          docker buildx imagetools create \
+            "${tags[@]}" \
+            "${REGISTRY_IMAGE}:${VERSION}-amd64" \
+            "${REGISTRY_IMAGE}:${VERSION}-arm64"
+
+      - name: Inspect manifest
+        run: |
+          docker buildx imagetools inspect "${REGISTRY_IMAGE}:${VERSION}"
