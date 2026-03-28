@@ -15,9 +15,6 @@ permissions:
   contents: read
   packages: write
 
-env:
-  REGISTRY: ghcr.io
-
 jobs:
   matrix:
     name: Prepare build matrix
@@ -40,13 +37,13 @@ jobs:
           echo "rows=$rows_json" >> "$GITHUB_OUTPUT"
 
   build:
-    name: Build ${{ matrix.image.config_name }} / ${{ matrix.image.image_name }} / ${{ matrix.image.version }} / ${{ matrix.platform }}
+    name: Build ${{ matrix.platform }} (${{ matrix.image.config_name }} / ${{ matrix.image.image_name }} / ${{ matrix.image.version }})
     needs: matrix
     strategy:
       fail-fast: false
       matrix:
         include:
-          - runner: ubuntu-latest
+          - runner: ubuntu-24.04
             platform: linux/amd64
             platform_suffix: amd64
           - runner: ubuntu-24.04-arm
@@ -55,7 +52,7 @@ jobs:
         image: ${{ fromJson(needs.matrix.outputs.rows) }}
     runs-on: ${{ matrix.runner }}
     env:
-      IMAGE_NAME: ${{ matrix.image.image_name }}
+      REGISTRY_IMAGE: ghcr.io/${{ github.repository_owner }}/${{ matrix.image.image_name }}
       VERSION: ${{ matrix.image.version }}
       SOURCE_REPO: ${{ matrix.image.source_repo }}
       SOURCE_TAG: ${{ matrix.image.source_tag }}
@@ -83,7 +80,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@030e881283bb7a6894de51c315a6bfe6a94e05cf # v6
         with:
-          images: ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}
+          images: ${{ env.REGISTRY_IMAGE }}
           tags: |
             type=raw,value=${{ env.VERSION }}-${{ matrix.platform_suffix }}
 
@@ -91,7 +88,7 @@ jobs:
         if: github.event_name == 'push'
         uses: docker/login-action@b45d80f862d83dbcd57f89517bcf500b2ab88fb2 # v4
         with:
-          registry: ${{ env.REGISTRY }}
+          registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
@@ -105,11 +102,11 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           push: ${{ github.event_name == 'push' }}
-          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:buildcache-${{ matrix.platform_suffix }}
-          cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:buildcache-${{ matrix.platform_suffix }},mode=max
+          cache-from: type=registry,ref=${{ env.REGISTRY_IMAGE }}:buildcache-${{ matrix.platform_suffix }}
+          cache-to: type=registry,ref=${{ env.REGISTRY_IMAGE }}:buildcache-${{ matrix.platform_suffix }},mode=max
 
   merge:
-    name: Merge manifest ${{ matrix.config_name }} / ${{ matrix.image_name }} / ${{ matrix.version }}
+    name: Merge manifest (${{ matrix.config_name }} / ${{ matrix.image_name }} / ${{ matrix.version }})
     if: github.event_name == 'push'
     needs:
       - matrix
@@ -119,7 +116,7 @@ jobs:
       fail-fast: false
       matrix: ${{ fromJson(needs.matrix.outputs.rows) }}
     env:
-      REGISTRY_IMAGE: ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ matrix.image_name }}
+      REGISTRY_IMAGE: ghcr.io/${{ github.repository_owner }}/${{ matrix.image_name }}
       VERSION: ${{ matrix.version }}
     steps:
       - name: Parse version parts
@@ -136,7 +133,7 @@ jobs:
       - name: Registry login
         uses: docker/login-action@b45d80f862d83dbcd57f89517bcf500b2ab88fb2 # v4
         with:
-          registry: ${{ env.REGISTRY }}
+          registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
