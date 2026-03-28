@@ -1,0 +1,37 @@
+{
+  $schema: "https://docs.renovatebot.com/renovate-schema.json",
+  extends: ["config:recommended", "helpers:pinGitHubActionDigests"],
+  customManagers: [
+    {
+      customType: "regex",
+      fileMatch: ["^versions/.*\\.json$"],
+      matchStrings: [
+        '"version"\\s*:\\s*"(?<currentValue>v?\\d+\\.\\d+\\.\\d+)"',
+      ],
+      depNameTemplate: "nearai/ironclaw",
+      datasourceTemplate: "github-tags",
+      versioningTemplate: "semver-coerced",
+      extractVersionTemplate: "^(?:ironclaw-)?v?(?<version>\\d+\\.\\d+\\.\\d+)$",
+      autoReplaceStringTemplate: '"version": "v{{{newVersion}}}"',
+    },
+    {
+      customType: "regex",
+      fileMatch: ["^versions/.*\\.json$"],
+      matchStrings: [
+        '"tag"\\s*:\\s*"(?<tagPrefix>ironclaw-)?(?<currentValue>v?\\d+\\.\\d+\\.\\d+)"',
+      ],
+      depNameTemplate: "nearai/ironclaw",
+      datasourceTemplate: "github-tags",
+      extractVersionTemplate: "^(?:ironclaw-)?v?(?<version>\\d+\\.\\d+\\.\\d+)$",
+      versioningTemplate: "semver-coerced",
+      autoReplaceStringTemplate: '"tag": "{{#if tagPrefix}}{{{tagPrefix}}}{{/if}}v{{{newVersion}}}"',
+    },
+  ],
+  packageRules: [
+    {
+      matchManagers: ["custom.regex"],
+      matchDepNames: ["nearai/ironclaw"],
+      groupName: "nearai/ironclaw version",
+    },
+  ],
+}

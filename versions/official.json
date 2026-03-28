@@ -1,0 +1,17 @@
+{
+  "version": "v0.22.0",
+  "source": {
+    "repo": "https://github.com/nearai/ironclaw.git",
+    "tag": "ironclaw-v0.22.0"
+  },
+  "images": [
+    {
+      "name": "ironclaw",
+      "dockerfile": "Dockerfile"
+    },
+    {
+      "name": "ironclaw-worker",
+      "dockerfile": "Dockerfile.worker"
+    }
+  ]
+}
