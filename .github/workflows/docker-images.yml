@@ -36,71 +36,71 @@ jobs:
           rows_json="$(python .github/scripts/version_matrix.py)"
           echo "rows=$rows_json" >> "$GITHUB_OUTPUT"
 
-  # build:
-  #   name: Build ${{ matrix.platform.value }} (${{ matrix.image.config_name }} / ${{ matrix.image.image_name }} / ${{ matrix.image.version }})
-  #   needs: matrix
-  #   strategy:
-  #     fail-fast: false
-  #     matrix:
-  #       platform:
-  #         - runner: ubuntu-24.04
-  #           value: linux/amd64
-  #           suffix: amd64
-  #         - runner: ubuntu-24.04-arm
-  #           value: linux/arm64
-  #           suffix: arm64
-  #       image: ${{ fromJson(needs.matrix.outputs.rows) }}
-  #   runs-on: ${{ matrix.platform.runner }}
-  #   env:
-  #     REGISTRY_IMAGE: ghcr.io/${{ github.repository_owner }}/${{ matrix.image.image_name }}
-  #     VERSION: ${{ matrix.image.version }}
-  #     SOURCE_REPO: ${{ matrix.image.source_repo }}
-  #     SOURCE_TAG: ${{ matrix.image.source_tag }}
-  #     DOCKERFILE: ${{ matrix.image.dockerfile }}
+  build:
+    name: Build ${{ matrix.platform.value }} (${{ matrix.image.config_name }} / ${{ matrix.image.image_name }} / ${{ matrix.image.version }})
+    needs: matrix
+    strategy:
+      fail-fast: false
+      matrix:
+        platform:
+          - runner: ubuntu-24.04
+            value: linux/amd64
+            suffix: amd64
+          - runner: ubuntu-24.04-arm
+            value: linux/arm64
+            suffix: arm64
+        image: ${{ fromJson(needs.matrix.outputs.rows) }}
+    runs-on: ${{ matrix.platform.runner }}
+    env:
+      REGISTRY_IMAGE: ghcr.io/${{ github.repository_owner }}/${{ matrix.image.image_name }}
+      VERSION: ${{ matrix.image.version }}
+      SOURCE_REPO: ${{ matrix.image.source_repo }}
+      SOURCE_TAG: ${{ matrix.image.source_tag }}
+      DOCKERFILE: ${{ matrix.image.dockerfile }}
 
-  #   steps:
-  #     - name: Checkout repository
-  #       uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
-  #     - name: Set up Docker Buildx
-  #       uses: docker/setup-buildx-action@4d04d5d9486b7bd6fa91e7baf45bbb4f8b9deedd # v4
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@4d04d5d9486b7bd6fa91e7baf45bbb4f8b9deedd # v4
 
-  #     - name: Clone upstream source
-  #       run: git clone --depth 1 --branch "$SOURCE_TAG" "$SOURCE_REPO" upstream
+      - name: Clone upstream source
+        run: git clone --depth 1 --branch "$SOURCE_TAG" "$SOURCE_REPO" upstream
 
-  #     - name: Docker metadata
-  #       id: meta
-  #       uses: docker/metadata-action@030e881283bb7a6894de51c315a6bfe6a94e05cf # v6
-  #       with:
-  #         images: ${{ env.REGISTRY_IMAGE }}
-  #         tags: |
-  #           type=raw,value=${{ env.VERSION }}-${{ matrix.platform.suffix }}
+      - name: Docker metadata
+        id: meta
+        uses: docker/metadata-action@030e881283bb7a6894de51c315a6bfe6a94e05cf # v6
+        with:
+          images: ${{ env.REGISTRY_IMAGE }}
+          tags: |
+            type=raw,value=${{ env.VERSION }}-${{ matrix.platform.suffix }}
 
-  #     - name: Registry login
-  #       if: github.event_name == 'push'
-  #       uses: docker/login-action@b45d80f862d83dbcd57f89517bcf500b2ab88fb2 # v4
-  #       with:
-  #         registry: ghcr.io
-  #         username: ${{ github.repository_owner }}
-  #         password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Registry login
+        if: github.event_name == 'push'
+        uses: docker/login-action@b45d80f862d83dbcd57f89517bcf500b2ab88fb2 # v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-  #     - name: Build and push image
-  #       id: build
-  #       uses: docker/build-push-action@d08e5c354a6adb9ed34480a06d141179aa583294 # v7
-  #       with:
-  #         context: upstream
-  #         file: upstream/${{ env.DOCKERFILE }}
-  #         platforms: ${{ matrix.platform.value }}
-  #         tags: ${{ steps.meta.outputs.tags }}
-  #         labels: ${{ steps.meta.outputs.labels }}
-  #         push: ${{ github.event_name == 'push' }}
+      - name: Build and push image
+        id: build
+        uses: docker/build-push-action@d08e5c354a6adb9ed34480a06d141179aa583294 # v7
+        with:
+          context: upstream
+          file: upstream/${{ env.DOCKERFILE }}
+          platforms: ${{ matrix.platform.value }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          push: ${{ github.event_name == 'push' }}
 
   merge:
     name: Merge manifest (${{ matrix.config_name }} / ${{ matrix.image_name }} / ${{ matrix.version }})
-    # if: github.event_name == 'push'
+    if: github.event_name == 'push'
     needs:
       - matrix
-      # - build
+      - build
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
