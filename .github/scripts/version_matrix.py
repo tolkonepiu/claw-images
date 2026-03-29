@@ -28,6 +28,9 @@ def _selected_files(changed_files_json: str | None) -> list[Path] | None:
     if changed_files_json is None:
         return None
 
+    if changed_files_json.strip() == "":
+        return []
+
     parsed = json.loads(changed_files_json)
     if not isinstance(parsed, list):
         raise ValueError("--changed-files-json must be a JSON array")
