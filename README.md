@@ -12,9 +12,11 @@ official images.
 | [ironclaw](https://github.com/nearai/ironclaw)  | `ghcr.io/tolkonepiu/ironclaw-worker` | `ghcr.io/tolkonepiu/ironclaw-worker:latest` | [ironclaw-worker packages](https://github.com/tolkonepiu/claw-images/pkgs/container/ironclaw-worker) |
 | [nanobot](https://github.com/HKUDS/nanobot)     | `ghcr.io/tolkonepiu/nanobot`         | `ghcr.io/tolkonepiu/nanobot:latest`         | [nanobot packages](https://github.com/tolkonepiu/claw-images/pkgs/container/nanobot)                 |
 
-> [!NOTE] Images are published for `amd64` and `arm64`. Tags like
-> `v0.23.0-amd64` and `v0.23.0-arm64` are architecture-specific, while `v0.23.0`
-> and `latest` are multi-arch tags.
+> [!NOTE]
+>
+> Images are published for `amd64` and `arm64`. Tags like `v0.23.0-amd64` and
+> `v0.23.0-arm64` are architecture-specific, while `v0.23.0` and `latest` are
+> multi-arch tags.
 
 ## Docker examples
 
