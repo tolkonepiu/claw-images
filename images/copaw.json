@@ -1,0 +1,13 @@
+{
+  "version": "v0.2.0.post1",
+  "source": {
+    "repo": "https://github.com/agentscope-ai/CoPaw.git",
+    "tag": "v0.2.0.post1"
+  },
+  "images": [
+    {
+      "name": "copaw",
+      "dockerfile": "deploy/Dockerfile"
+    }
+  ]
+}
