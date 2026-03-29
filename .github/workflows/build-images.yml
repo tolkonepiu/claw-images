@@ -36,7 +36,7 @@ jobs:
       - name: Detect changed image definitions for pull requests
         if: github.event_name == 'pull_request'
         id: changed_files_pr
-        uses: tj-actions/changed-files@v47.0.5
+        uses: tj-actions/changed-files@22103cc46bda19c2b464ffe86db46df6922fd323 # v47.0.5
         with:
           files: images/*.json
           json: true
@@ -46,7 +46,7 @@ jobs:
       - name: Detect changed image definitions for pushes
         if: github.event_name == 'push'
         id: changed_files_push
-        uses: tj-actions/changed-files@v47.0.5
+        uses: tj-actions/changed-files@22103cc46bda19c2b464ffe86db46df6922fd323 # v47.0.5
         with:
           files: images/*.json
           json: true
