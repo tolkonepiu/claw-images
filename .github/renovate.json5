@@ -16,6 +16,19 @@
       extractVersionTemplate: "^(?:ironclaw-)?v?(?<version>\\d+\\.\\d+\\.\\d+)$",
       versioningTemplate: "semver-coerced",
     },
+    {
+      customType: "regex",
+      fileMatch: ["^images/nanobot.json$"],
+      matchStringsStrategy: "any",
+      matchStrings: [
+        '"version"\\s*:\\s*"v?(?<currentValue>\\d+\\.\\d+\\.\\d+(?:\\.post\\d+)?)"',
+        '"tag"\\s*:\\s*"v?(?<currentValue>\\d+\\.\\d+\\.\\d+(?:\\.post\\d+)?)"',
+      ],
+      depNameTemplate: "HKUDS/nanobot",
+      datasourceTemplate: "github-tags",
+      extractVersionTemplate: "^v?(?<version>\\d+\\.\\d+\\.\\d+(?:\\.post\\d+)?)$",
+      versioningTemplate: "pep440",
+    },
   ],
   packageRules: [
     {
@@ -24,8 +37,13 @@
       groupName: "nearai/ironclaw version",
     },
     {
+      matchManagers: ["custom.regex"],
+      matchDepNames: ["HKUDS/nanobot"],
+      groupName: "HKUDS/nanobot version",
+    },
+    {
       matchUpdateTypes: ["minor", "patch", "pin", "digest"],
-      automerge: true,
+      automerge: false,
     },
   ],
 }
