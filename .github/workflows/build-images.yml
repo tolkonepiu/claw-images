@@ -21,23 +21,59 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       rows: ${{ steps.generate.outputs.rows }}
+      has_rows: ${{ steps.generate.outputs.has_rows }}
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          fetch-depth: 0
 
       - name: Setup Python
         uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
         with:
           python-version: "3.x"
 
+      - name: Detect changed image definitions for pull requests
+        if: github.event_name == 'pull_request'
+        id: changed_files_pr
+        uses: tj-actions/changed-files@v47.0.5
+        with:
+          files: images/*.json
+          json: true
+          use_posix_path_separator: true
+
+      - name: Detect changed image definitions for pushes
+        if: github.event_name == 'push'
+        id: changed_files_push
+        uses: tj-actions/changed-files@v47.0.5
+        with:
+          files: images/*.json
+          json: true
+          since_last_remote_commit: true
+          use_posix_path_separator: true
+
       - name: Generate matrix
         id: generate
+        env:
+          CHANGED_FILES_JSON: ${{ steps.changed_files_pr.outputs.all_changed_files || steps.changed_files_push.outputs.all_changed_files || '' }}
         run: |
-          rows_json="$(python .github/scripts/version_matrix.py)"
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            rows_json="$(python .github/scripts/version_matrix.py)"
+          else
+            rows_json="$(python .github/scripts/version_matrix.py --changed-files-json "$CHANGED_FILES_JSON")"
+          fi
+
           echo "rows=$rows_json" >> "$GITHUB_OUTPUT"
+
+          if [ "$rows_json" = "[]" ]; then
+            echo "has_rows=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_rows=true" >> "$GITHUB_OUTPUT"
+          fi
 
   build:
     name: Build ${{ matrix.image.image_name }} (${{ matrix.image.version }} / ${{ matrix.platform.value }})
+    if: needs.matrix.outputs.has_rows == 'true'
     needs: matrix
     strategy:
       fail-fast: false
@@ -97,7 +133,7 @@ jobs:
 
   merge:
     name: Merge manifest (${{ matrix.image_name }} / ${{ matrix.version }})
-    if: github.event_name == 'push'
+    if: github.event_name == 'push' && needs.matrix.outputs.has_rows == 'true'
     needs:
       - matrix
       - build

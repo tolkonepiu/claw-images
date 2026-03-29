@@ -1,0 +1,13 @@
+{
+  "version": "v0.1.4.post6",
+  "source": {
+    "repo": "https://github.com/HKUDS/nanobot.git",
+    "tag": "v0.1.4.post6"
+  },
+  "images": [
+    {
+      "name": "nanobot",
+      "dockerfile": "Dockerfile"
+    }
+  ]
+}
