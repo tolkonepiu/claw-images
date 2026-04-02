@@ -12,7 +12,7 @@
         "OPENCLAW_VARIANT": "default",
         "OPENCLAW_NODE_BOOKWORM_IMAGE": "node:22-bookworm",
         "OPENCLAW_NODE_BOOKWORM_DIGEST": "",
-        "OPENCLAW_NODE_BOOKWORM_SLIM_IMAGE": "node:22-bookworm-bookworm-slim",
+        "OPENCLAW_NODE_BOOKWORM_SLIM_IMAGE": "node:22-bookworm-slim",
         "OPENCLAW_NODE_BOOKWORM_SLIM_DIGEST": ""
       }
     },
@@ -23,7 +23,7 @@
         "OPENCLAW_VARIANT": "slim",
         "OPENCLAW_NODE_BOOKWORM_IMAGE": "node:22-bookworm",
         "OPENCLAW_NODE_BOOKWORM_DIGEST": "",
-        "OPENCLAW_NODE_BOOKWORM_SLIM_IMAGE": "node:22-bookworm-bookworm-slim",
+        "OPENCLAW_NODE_BOOKWORM_SLIM_IMAGE": "node:22-bookworm-slim",
         "OPENCLAW_NODE_BOOKWORM_SLIM_DIGEST": ""
       }
     },
