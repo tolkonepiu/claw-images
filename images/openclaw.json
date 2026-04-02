@@ -6,6 +6,28 @@
   },
   "images": [
     {
+      "name": "openclaw-node22",
+      "dockerfile": "Dockerfile",
+      "args": {
+        "OPENCLAW_VARIANT": "default",
+        "OPENCLAW_NODE_BOOKWORM_IMAGE": "node:22-bookworm",
+        "OPENCLAW_NODE_BOOKWORM_DIGEST": "",
+        "OPENCLAW_NODE_BOOKWORM_SLIM_IMAGE": "node:22-bookworm-slim",
+        "OPENCLAW_NODE_BOOKWORM_SLIM_DIGEST": ""
+      }
+    },
+    {
+      "name": "openclaw-node22-slim",
+      "dockerfile": "Dockerfile",
+      "args": {
+        "OPENCLAW_VARIANT": "slim",
+        "OPENCLAW_NODE_BOOKWORM_IMAGE": "node:22-bookworm",
+        "OPENCLAW_NODE_BOOKWORM_DIGEST": "",
+        "OPENCLAW_NODE_BOOKWORM_SLIM_IMAGE": "node:22-bookworm-slim",
+        "OPENCLAW_NODE_BOOKWORM_SLIM_DIGEST": ""
+      }
+    },
+    {
       "name": "openclaw-sandbox",
       "dockerfile": "Dockerfile.sandbox"
     },

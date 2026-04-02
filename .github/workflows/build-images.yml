@@ -95,6 +95,7 @@ jobs:
       SOURCE_REPO: ${{ matrix.image.source_repo }}
       SOURCE_TAG: ${{ matrix.image.source_tag }}
       DOCKERFILE: ${{ matrix.image.dockerfile }}
+      BUILD_ARGS: ${{ matrix.image.args }}
 
     steps:
       - name: Checkout repository
@@ -132,6 +133,7 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           push: ${{ github.event_name == 'push' }}
+          build-args: ${{ env.BUILD_ARGS }}
 
   merge:
     name: Merge manifest ${{ matrix.image_name }} (${{ matrix.version }})
