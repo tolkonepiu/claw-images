@@ -1,0 +1,189 @@
+name: build-overlays
+
+on:
+  pull_request:
+    paths:
+      - "overlays/*.json"
+      - "overlay-files/**"
+  push:
+    branches:
+      - main
+    paths:
+      - "overlays/*.json"
+      - "overlay-files/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  matrix:
+    name: Prepare build matrix
+    runs-on: ubuntu-latest
+    outputs:
+      rows: ${{ steps.generate.outputs.rows }}
+      has_rows: ${{ steps.generate.outputs.has_rows }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
+        with:
+          python-version: "3.x"
+
+      - name: Detect changed overlay definitions for pull requests
+        if: github.event_name == 'pull_request'
+        id: changed_files_pr
+        uses: tj-actions/changed-files@22103cc46bda19c2b464ffe86db46df6922fd323
+        with:
+          files: |
+            overlays/*.json
+            overlay-files/**
+          json: true
+          escape_json: false
+          use_posix_path_separator: true
+
+      - name: Detect changed overlay definitions for pushes
+        if: github.event_name == 'push'
+        id: changed_files_push
+        uses: tj-actions/changed-files@22103cc46bda19c2b464ffe86db46df6922fd323
+        with:
+          files: |
+            overlays/*.json
+            overlay-files/**
+          json: true
+          escape_json: false
+          since_last_remote_commit: true
+          use_posix_path_separator: true
+
+      - name: Generate matrix
+        id: generate
+        env:
+          CHANGED_FILES_JSON: ${{ steps.changed_files_pr.outputs.all_changed_files || steps.changed_files_push.outputs.all_changed_files || '[]' }}
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            rows_json="$(python .github/scripts/overlay_matrix.py)"
+          else
+            rows_json="$(python .github/scripts/overlay_matrix.py --changed-files-json "$CHANGED_FILES_JSON")"
+          fi
+
+          echo "rows=$rows_json" >> "$GITHUB_OUTPUT"
+
+          if [ "$rows_json" = "[]" ]; then
+            echo "has_rows=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_rows=true" >> "$GITHUB_OUTPUT"
+          fi
+
+  build:
+    name: Build ${{ matrix.image.image_name }} (${{ matrix.image.version }}, ${{ matrix.platform.value }})
+    if: needs.matrix.outputs.has_rows == 'true'
+    needs: matrix
+    strategy:
+      fail-fast: false
+      matrix:
+        platform:
+          - runner: ubuntu-24.04
+            value: linux/amd64
+            suffix: amd64
+          - runner: ubuntu-24.04-arm
+            value: linux/arm64
+            suffix: arm64
+        image: ${{ fromJson(needs.matrix.outputs.rows) }}
+    runs-on: ${{ matrix.platform.runner }}
+    env:
+      REGISTRY_IMAGE: ghcr.io/${{ github.repository_owner }}/${{ matrix.image.image_name }}
+      VERSION: ${{ matrix.image.version }}
+      SOURCE_IMAGE: ${{ matrix.image.source_image }}
+      DOCKERFILE: ${{ matrix.image.dockerfile }}
+      CONTEXT: ${{ matrix.image.context }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@4d04d5d9486b7bd6fa91e7baf45bbb4f8b9deedd
+
+      - name: Docker metadata
+        id: meta
+        uses: docker/metadata-action@030e881283bb7a6894de51c315a6bfe6a94e05cf
+        with:
+          images: ${{ env.REGISTRY_IMAGE }}
+          tags: |
+            type=raw,value=${{ env.VERSION }}-${{ matrix.platform.suffix }}
+
+      - name: Registry login
+        if: github.event_name == 'push'
+        uses: docker/login-action@b45d80f862d83dbcd57f89517bcf500b2ab88fb2
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push image
+        id: build
+        uses: docker/build-push-action@d08e5c354a6adb9ed34480a06d141179aa583294
+        with:
+          context: ${{ env.CONTEXT }}
+          file: ${{ env.DOCKERFILE }}
+          platforms: ${{ matrix.platform.value }}
+          build-args: |
+            BASE_IMAGE=${{ env.SOURCE_IMAGE }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          push: ${{ github.event_name == 'push' }}
+
+  merge:
+    name: Merge manifest ${{ matrix.image_name }} (${{ matrix.version }})
+    if: github.event_name == 'push' && needs.matrix.outputs.has_rows == 'true'
+    needs:
+      - matrix
+      - build
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJson(needs.matrix.outputs.rows) }}
+    env:
+      REGISTRY_IMAGE: ghcr.io/${{ github.repository_owner }}/${{ matrix.image_name }}
+      VERSION: ${{ matrix.version }}
+    steps:
+      - name: Parse version parts
+        id: version_parts
+        run: |
+          major="$(echo "$VERSION" | cut -d. -f1)"
+          minor="$(echo "$VERSION" | cut -d. -f2)"
+          echo "major=$major" >> "$GITHUB_OUTPUT"
+          echo "minor=$minor" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@4d04d5d9486b7bd6fa91e7baf45bbb4f8b9deedd
+
+      - name: Registry login
+        uses: docker/login-action@b45d80f862d83dbcd57f89517bcf500b2ab88fb2
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create multi-arch manifest
+        run: |
+          tags=(
+            -t "${REGISTRY_IMAGE}:${VERSION}"
+            -t "${REGISTRY_IMAGE}:${{ steps.version_parts.outputs.major }}.${{ steps.version_parts.outputs.minor }}"
+            -t "${REGISTRY_IMAGE}:${{ steps.version_parts.outputs.major }}"
+          )
+
+          if [ "${GITHUB_REF_NAME}" = "${{ github.event.repository.default_branch }}" ]; then
+            tags+=(-t "${REGISTRY_IMAGE}:latest")
+          fi
+
+          docker buildx imagetools create \
+            "${tags[@]}" \
+            "${REGISTRY_IMAGE}:${VERSION}-amd64" \
+            "${REGISTRY_IMAGE}:${VERSION}-arm64"

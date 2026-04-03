@@ -55,6 +55,17 @@
       extractVersionTemplate: "^v?(?<version>\\d+\\.\\d+\\.\\d+)$",
       versioningTemplate: "semver-coerced",
     },
+    {
+      customType: "regex",
+      fileMatch: ["^overlays/.*\\.json$"],
+      matchStrings: [
+        '"version"\\s*:\\s*"v?\\d+\\.\\d+\\.\\d+",\\s*"source_image"\\s*:\\s*"(?<depName>ghcr\\.io/[^":]+):(?<currentValue>\\d+\\.\\d+\\.\\d+)"',
+      ],
+      datasourceTemplate: "docker",
+      autoReplaceStringTemplate: '"version": "v{{{newValue}}}",\n  "source_image": "{{{depName}}}:{{{newValue}}}"',
+      extractVersionTemplate: "^(?<version>\\d+\\.\\d+\\.\\d+)$",
+      versioningTemplate: "semver-coerced",
+    },
   ],
   packageRules: [
     {
