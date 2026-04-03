@@ -1,9 +1,0 @@
-{
-  "name": "openclaw-bootstrap",
-  "version": "v2026.3.28",
-  "source_image": "ghcr.io/openclaw/openclaw:2026.3.28",
-  "overlay": {
-    "dockerfile": "overlay-files/openclaw-bootstrap/Dockerfile",
-    "context": "overlay-files/openclaw-bootstrap"
-  }
-}
