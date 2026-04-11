@@ -5,6 +5,8 @@ import json
 from pathlib import Path
 from typing import Any
 
+from matrix_common import format_args
+
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 IMAGES_DIR = REPO_ROOT / "images"
@@ -61,28 +63,6 @@ def _selected_files(changed_files_json: str | None) -> list[Path] | None:
     return sorted(files, key=lambda item: item.name)
 
 
-def _format_args(raw_args: Any) -> str:
-    if raw_args is None:
-        return ""
-
-    if not isinstance(raw_args, dict):
-        raise ValueError("image args must be a JSON object")
-
-    lines: list[str] = []
-    for key, value in raw_args.items():
-        if not isinstance(key, str):
-            raise ValueError("image args keys must be strings")
-        if "=" in key or "\n" in key or "\r" in key:
-            raise ValueError("image args keys must not contain '=', '\\n', or '\\r'")
-        if not isinstance(value, str):
-            raise ValueError("image args values must be strings")
-        if "\n" in value or "\r" in value:
-            raise ValueError("image args values must be single-line strings")
-        lines.append(f"{key}={value}")
-
-    return "\n".join(lines)
-
-
 def _matrix_rows(path: Path, data: dict[str, Any]) -> list[dict[str, str]]:
     source = data["source"]
     rows: list[dict[str, str]] = []
@@ -95,7 +75,7 @@ def _matrix_rows(path: Path, data: dict[str, Any]) -> list[dict[str, str]]:
                 "source_tag": source["tag"],
                 "image_name": image["name"],
                 "dockerfile": image["dockerfile"],
-                "args": _format_args(image.get("args")),
+                "args": format_args(image.get("args"), kind="image"),
             }
         )
     return rows

@@ -59,10 +59,12 @@ jobs:
         env:
           CHANGED_FILES_JSON: ${{ steps.changed_files_pr.outputs.all_changed_files || steps.changed_files_push.outputs.all_changed_files || '[]' }}
         run: |
+          set -e
+
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            rows_json="$(python .github/scripts/version_matrix.py)"
+            rows_json="$(python .github/scripts/image_matrix.py)"
           else
-            rows_json="$(python .github/scripts/version_matrix.py --changed-files-json "$CHANGED_FILES_JSON")"
+            rows_json="$(python .github/scripts/image_matrix.py --changed-files-json "$CHANGED_FILES_JSON")"
           fi
 
           echo "rows=$rows_json" >> "$GITHUB_OUTPUT"
