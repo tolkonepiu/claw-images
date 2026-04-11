@@ -1,7 +1,7 @@
 {
   "name": "openclaw-full",
-  "version": "v2026.4.9",
-  "source_image": "ghcr.io/openclaw/openclaw:2026.4.9",
+  "version": "v2026.4.10",
+  "source_image": "ghcr.io/openclaw/openclaw:2026.4.10",
   "overlay": {
     "dockerfile": "overlay-files/openclaw-full/Dockerfile",
     "context": "overlay-files/openclaw-full"
