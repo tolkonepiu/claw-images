@@ -6,6 +6,7 @@
     "dockerfile": "overlay-files/openclaw-full/Dockerfile",
     "context": "overlay-files/openclaw-full",
     "args": {
+      "PACKAGES": "curl wget jq coreutils grep nodejs npm python3 git ca-certificates golang-go rustc cargo unzip pkg-config libasound2-dev build-essential file",
       "FINAL_USER": "sandbox"
     }
   }
