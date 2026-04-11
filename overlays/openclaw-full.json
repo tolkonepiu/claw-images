@@ -4,9 +4,6 @@
   "source_image": "ghcr.io/openclaw/openclaw:2026.4.10",
   "overlay": {
     "dockerfile": "overlay-files/openclaw-full/Dockerfile",
-    "context": "overlay-files/openclaw-full",
-    "args": {
-      "FINAL_USER": "node"
-    }
+    "context": "overlay-files/openclaw-full"
   }
 }
