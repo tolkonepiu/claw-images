@@ -5,6 +5,8 @@ import json
 from pathlib import Path
 from typing import Any
 
+from matrix_common import format_args
+
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 OVERLAYS_DIR = REPO_ROOT / "overlays"
@@ -95,6 +97,7 @@ def _matrix_row(path: Path, data: dict[str, Any]) -> dict[str, str]:
         "source_image": data["source_image"],
         "dockerfile": overlay["dockerfile"],
         "context": overlay["context"],
+        "args": format_args(overlay.get("args"), kind="overlay"),
     }
 
 

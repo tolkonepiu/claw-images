@@ -64,6 +64,8 @@ jobs:
         env:
           CHANGED_FILES_JSON: ${{ steps.changed_files_pr.outputs.all_changed_files || steps.changed_files_push.outputs.all_changed_files || '[]' }}
         run: |
+          set -e
+
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             rows_json="$(python .github/scripts/overlay_matrix.py)"
           else
@@ -100,6 +102,7 @@ jobs:
       SOURCE_IMAGE: ${{ matrix.image.source_image }}
       DOCKERFILE: ${{ matrix.image.dockerfile }}
       CONTEXT: ${{ matrix.image.context }}
+      BUILD_ARGS: ${{ matrix.image.args }}
 
     steps:
       - name: Checkout repository
@@ -133,6 +136,7 @@ jobs:
           platforms: ${{ matrix.platform.value }}
           build-args: |
             BASE_IMAGE=${{ env.SOURCE_IMAGE }}
+            ${{ env.BUILD_ARGS }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           push: ${{ github.event_name == 'push' }}

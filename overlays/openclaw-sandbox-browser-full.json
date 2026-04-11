@@ -1,0 +1,13 @@
+{
+  "name": "openclaw-sandbox-browser-full",
+  "version": "v2026.4.9",
+  "source_image": "ghcr.io/tolkonepiu/openclaw-sandbox-browser:v2026.4.9",
+  "overlay": {
+    "dockerfile": "overlay-files/openclaw-full/Dockerfile",
+    "context": "overlay-files/openclaw-full",
+    "args": {
+      "PACKAGES": "curl wget jq coreutils grep nodejs npm python3 git ca-certificates golang-go rustc cargo unzip pkg-config libasound2-dev build-essential file",
+      "FINAL_USER": "sandbox"
+    }
+  }
+}

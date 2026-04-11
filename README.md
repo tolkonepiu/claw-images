@@ -50,3 +50,16 @@ docker pull ghcr.io/tolkonepiu/ironclaw:v0.23.0-arm64
    object to the image entry. Each key/value pair is passed through as a Docker
    build argument. Keys and values must be single-line strings.
 5. Open a pull request to validate the build.
+
+## Adding a new overlay definition
+
+1. Create a new file in `overlays/`, for example `overlays/<image>.json`.
+2. Set `name`, `version`, and `source_image` to the final image name, release,
+   and base image to build from.
+3. Set `overlay.dockerfile` and `overlay.context` to the local overlay
+   Dockerfile and build context.
+4. If the overlay Dockerfile expects additional build arguments, add an
+   optional `overlay.args` object. Each key/value pair is passed through as a
+   Docker build argument after `BASE_IMAGE`, which is always provided
+   automatically. Keys and values must be single-line strings.
+5. Open a pull request to validate the build.
