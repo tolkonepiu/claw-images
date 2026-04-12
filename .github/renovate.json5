@@ -72,10 +72,10 @@
         '/^overlays/.*\\.json$/',
       ],
       matchStrings: [
-        '"version"\\s*:\\s*"v?\\d+\\.\\d+\\.\\d+",\\s*"source_image"\\s*:\\s*"(?<depName>ghcr\\.io/[^":]+):v?(?<currentValue>\\d+\\.\\d+\\.\\d+)"',
+        '"version"\\s*:\\s*"v?\\d+\\.\\d+\\.\\d+",\\s*"source_image"\\s*:\\s*"(?<depName>ghcr\\.io/[^":]+):(?<sourceTagPrefix>v?)(?<currentValue>\\d+\\.\\d+\\.\\d+)"',
       ],
       datasourceTemplate: 'docker',
-      autoReplaceStringTemplate: '"version": "v{{{newValue}}}",\n  "source_image": "{{{depName}}}:v{{{newValue}}}"',
+      autoReplaceStringTemplate: '"version": "v{{{newValue}}}",\n  "source_image": "{{{depName}}}:{{{sourceTagPrefix}}}{{{newValue}}}"',
       extractVersionTemplate: '^v?(?<version>\\d+\\.\\d+\\.\\d+)$',
       versioningTemplate: 'semver-coerced',
     },
