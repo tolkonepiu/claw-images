@@ -69,13 +69,28 @@
     {
       customType: 'regex',
       managerFilePatterns: [
-        '/^overlays/.*\\.json$/',
+        '/^overlays/openclaw-full\\.json$/',
       ],
       matchStrings: [
-        '"version"\\s*:\\s*"v?\\d+\\.\\d+\\.\\d+",\\s*"source_image"\\s*:\\s*"(?<depName>ghcr\\.io/[^":]+):(?<sourceTagPrefix>v?)(?<currentValue>\\d+\\.\\d+\\.\\d+)"',
+        '"version"\\s*:\\s*"v?\\d+\\.\\d+\\.\\d+",\\s*"source_image"\\s*:\\s*"ghcr\\.io/openclaw/openclaw:(?<currentValue>\\d+\\.\\d+\\.\\d+)"',
       ],
+      depNameTemplate: 'ghcr.io/openclaw/openclaw',
       datasourceTemplate: 'docker',
-      autoReplaceStringTemplate: '"version": "v{{{newValue}}}",\n  "source_image": "{{{depName}}}:{{{sourceTagPrefix}}}{{{newValue}}}"',
+      autoReplaceStringTemplate: '"version": "v{{{newValue}}}",\n  "source_image": "{{{depName}}}:{{{newValue}}}"',
+      extractVersionTemplate: '^v?(?<version>\\d+\\.\\d+\\.\\d+)$',
+      versioningTemplate: 'semver-coerced',
+    },
+    {
+      customType: 'regex',
+      managerFilePatterns: [
+        '/^overlays/openclaw-sandbox(?:-browser)?-full\\.json$/',
+      ],
+      matchStrings: [
+        '"version"\\s*:\\s*"v?\\d+\\.\\d+\\.\\d+",\\s*"source_image"\\s*:\\s*"ghcr\\.io/tolkonepiu/openclaw-(?<imageFlavor>sandbox(?:-browser)?):v(?<currentValue>\\d+\\.\\d+\\.\\d+)"',
+      ],
+      depNameTemplate: 'ghcr.io/tolkonepiu/openclaw-{{{imageFlavor}}}',
+      datasourceTemplate: 'docker',
+      autoReplaceStringTemplate: '"version": "v{{{newValue}}}",\n  "source_image": "{{{depName}}}:v{{{newValue}}}"',
       extractVersionTemplate: '^v?(?<version>\\d+\\.\\d+\\.\\d+)$',
       versioningTemplate: 'semver-coerced',
     },
@@ -114,8 +129,11 @@
       ],
       matchDepNames: [
         'openclaw/openclaw',
+        'ghcr.io/openclaw/openclaw',
+        'ghcr.io/tolkonepiu/openclaw-sandbox',
+        'ghcr.io/tolkonepiu/openclaw-sandbox-browser',
       ],
-      groupName: 'openclaw/openclaw version',
+      groupName: 'openclaw version',
     },
     {
       matchUpdateTypes: [
