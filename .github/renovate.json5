@@ -129,11 +129,27 @@
       ],
       matchDepNames: [
         'openclaw/openclaw',
+      ],
+      groupName: 'openclaw base version',
+    },
+    {
+      matchManagers: [
+        'custom.regex',
+      ],
+      matchDepNames: [
         'ghcr.io/openclaw/openclaw',
+      ],
+      groupName: 'openclaw overlay version',
+    },
+    {
+      matchManagers: [
+        'custom.regex',
+      ],
+      matchDepNames: [
         'ghcr.io/tolkonepiu/openclaw-sandbox',
         'ghcr.io/tolkonepiu/openclaw-sandbox-browser',
       ],
-      groupName: 'openclaw version',
+      groupName: 'openclaw sandbox overlay version',
     },
     {
       matchUpdateTypes: [
