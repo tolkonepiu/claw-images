@@ -7,11 +7,11 @@
   "images": [
     {
       "name": "openclaw-sandbox",
-      "dockerfile": "Dockerfile.sandbox"
+      "dockerfile": "scripts/docker/sandbox/Dockerfile"
     },
     {
       "name": "openclaw-sandbox-browser",
-      "dockerfile": "Dockerfile.sandbox-browser"
+      "dockerfile": "scripts/docker/sandbox/Dockerfile.browser"
     }
   ]
 }
