@@ -1,8 +1,8 @@
 {
-  "version": "v1.1.5.post1",
+  "version": "v1.1.5.post2",
   "source": {
     "repo": "https://github.com/agentscope-ai/CoPaw.git",
-    "tag": "v1.1.5.post1"
+    "tag": "v1.1.5.post2"
   },
   "images": [
     {
