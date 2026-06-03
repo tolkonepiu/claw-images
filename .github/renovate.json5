@@ -39,14 +39,14 @@
     {
       customType: 'regex',
       managerFilePatterns: [
-        '/^images/copaw.json$/',
+        '/^images/qwenpan.json$/',
       ],
       matchStringsStrategy: 'any',
       matchStrings: [
         '"version"\\s*:\\s*"v?(?<currentValue>\\d+\\.\\d+\\.\\d+(?:\\.post\\d+)?)"',
         '"tag"\\s*:\\s*"v?(?<currentValue>\\d+\\.\\d+\\.\\d+(?:\\.post\\d+)?)"',
       ],
-      depNameTemplate: 'agentscope-ai/CoPaw',
+      depNameTemplate: 'agentscope-ai/QwenPaw',
       datasourceTemplate: 'github-tags',
       extractVersionTemplate: '^v?(?<version>\\d+\\.\\d+\\.\\d+(?:\\.post\\d+)?)$',
       versioningTemplate: 'pep440',
@@ -119,9 +119,9 @@
         'custom.regex',
       ],
       matchDepNames: [
-        'agentscope-ai/CoPaw',
+        'agentscope-ai/QwenPaw',
       ],
-      groupName: 'agentscope-ai/CoPaw version',
+      groupName: 'agentscope-ai/QwenPaw version',
     },
     {
       matchManagers: [

@@ -1,12 +1,12 @@
 {
   "version": "v1.1.10",
   "source": {
-    "repo": "https://github.com/agentscope-ai/CoPaw.git",
+    "repo": "https://github.com/agentscope-ai/QwenPaw.git",
     "tag": "v1.1.10"
   },
   "images": [
     {
-      "name": "copaw",
+      "name": "qwenpaw",
       "dockerfile": "deploy/Dockerfile"
     }
   ]
