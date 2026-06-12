@@ -1,7 +1,7 @@
 {
   "name": "openclaw-sandbox-full",
-  "version": "v2026.6.5",
-  "source_image": "ghcr.io/tolkonepiu/openclaw-sandbox:v2026.6.5",
+  "version": "v2026.6.6",
+  "source_image": "ghcr.io/tolkonepiu/openclaw-sandbox:v2026.6.6",
   "overlay": {
     "dockerfile": "overlay-files/openclaw-full/Dockerfile",
     "context": "overlay-files/openclaw-full",
