@@ -1,8 +1,8 @@
 {
-  "version": "v0.29.1",
+  "version": "v1.0.0",
   "source": {
     "repo": "https://github.com/nearai/ironclaw.git",
-    "tag": "ironclaw-v0.29.1"
+    "tag": "ironclaw-v1.0.0"
   },
   "images": [
     {
