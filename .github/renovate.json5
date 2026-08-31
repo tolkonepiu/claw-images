@@ -39,7 +39,7 @@
     {
       customType: 'regex',
       managerFilePatterns: [
-        '/^images/qwenpan.json$/',
+        '/^images/qwenpaw.json$/',
       ],
       matchStringsStrategy: 'any',
       matchStrings: [
