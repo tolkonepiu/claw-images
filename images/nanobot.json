@@ -1,8 +1,8 @@
 {
-  "version": "v0.3.0",
+  "version": "v0.3.5",
   "source": {
     "repo": "https://github.com/HKUDS/nanobot.git",
-    "tag": "v0.3.0"
+    "tag": "v0.3.5"
   },
   "images": [
     {
