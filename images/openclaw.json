@@ -1,8 +1,8 @@
 {
-  "version": "v2026.10.4",
+  "version": "v2026.10.5",
   "source": {
     "repo": "https://github.com/openclaw/openclaw.git",
-    "tag": "v2026.10.4"
+    "tag": "v2026.10.5"
   },
   "images": [
     {
